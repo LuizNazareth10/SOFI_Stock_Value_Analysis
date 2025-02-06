@@ -3,10 +3,6 @@ venv/
 __pycache__/
 *.pyc
 
-# Ignorar arquivos de modelo treinados
-models/
-*.h5
-*.joblib
 
 # Ignorar dados temporários ou logs
 *.log
