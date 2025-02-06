@@ -1,0 +1,40 @@
+# Ignorar arquivos do ambiente virtual
+venv/
+__pycache__/
+*.pyc
+
+# Ignorar arquivos de modelo treinados
+models/
+*.h5
+*.joblib
+
+# Ignorar dados temporários ou logs
+*.log
+*.csv
+*.tsv
+*.json
+
+# Ignorar arquivos de backup ou temporários do editor
+*.swp
+*.swo
+*.bak
+
+# Ignorar diretórios de build
+build/
+dist/
+.eggs/
+
+# Ignorar arquivos específicos do PyCharm
+.idea/
+
+# Ignorar arquivos específicos do VS Code
+.vscode/
+
+# Ignorar arquivos de configuração do Jupyter
+.ipynb_checkpoints/
+
+# Ignorar arquivos de configuração do TensorFlow
+tensorflow/
+
+# Ignorar arquivos de configuração do Keras
+.keras/

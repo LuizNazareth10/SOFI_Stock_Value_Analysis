@@ -1,2 +1,6 @@
-## Create a server with Flask Framework
-from flask import Flask
+from models.longShortTermMemory import LSTM
+
+lstm = LSTM()
+
+lstm.generate_prediction('SOFI')
+lstm.visualizar_previsao()
