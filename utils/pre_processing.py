@@ -9,10 +9,15 @@ sc = MinMaxScaler(feature_range=(0, 1))
 
 def get_and_preprocess_dataset(dataset_name):
     stock_info = yf.Ticker(dataset_name).history(period='max')
+    stock_info.reset_index(inplace=True)
     stock_info = delete_columns(stock_info)
-    stock_info = normalize_dataset(stock_info)
+    stock_info = normalize_dataset(stock_info)  
     X_train, X_test, y_train, y_test = split_dataset_LSTM(stock_info)
+    y_train = normalize_dataset(y_train.reshape(-1, 1))
+    print(y_test)
+    
     return X_train, X_test, y_train, y_test
+
 
 def get_stock_info(dataset_name):
     stock_info = yf.Ticker(dataset_name)
@@ -68,3 +73,6 @@ def metrics(y_test, y_pred):
     rmse = mean_squared_error(y_test, y_pred)
     mae = mean_absolute_error(y_test, y_pred)
     return rmse, mae
+
+def get_date(dataset):
+    return dataset.index[-1]
