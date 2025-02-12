@@ -39,7 +39,7 @@ class LSTM_model:
     
     def create_layers(self, X_train):
         # self.model = Sequential()
-        self.model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 2)))
+        self.model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 1)))
         self.model.add(Dropout(0.2))
         self.model.add(LSTM(units=50, return_sequences=True))
         self.model.add(Dropout(0.2))
@@ -49,7 +49,7 @@ class LSTM_model:
         self.model.add(Dense(units=1))
     
     def generate_prediction(self, stock_name):
-        X_train, X_test, y_train, y_test = pp.get_and_preprocess_dataset(stock_name)
+        X_train, X_test, y_train, y_test, datas = pp.get_and_preprocess_dataset(stock_name)
         if not os.path.exists(self.model_path):
             raise Exception('Model not found')
             
@@ -61,13 +61,13 @@ class LSTM_model:
             
         previsao = self.predict(X_test)
         previsao = pp.denormalize_dataset(previsao)
-        print(f'PREVISAO\n\n\n{previsao}\n\n\n')
+        # print(f'PREVISAO\n\n\n{previsao}\n\n\n')
         return previsao
         
 
     def visualizar_previsao(self, previsao, y_test, datas):
         plt.figure(figsize=(12, 6))
-        
+        print(f'/n/n/n/nLSTM{datas}/n/n/n/n')
         # Convertendo as datas para um formato adequado
         datas = pd.to_datetime(datas)
 

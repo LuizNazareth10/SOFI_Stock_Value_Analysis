@@ -11,13 +11,22 @@ def get_and_preprocess_dataset(dataset_name):
     stock_info = yf.Ticker(dataset_name).history(period='max')
     stock_info.reset_index(inplace=True)
     stock_info = delete_columns(stock_info)
-    print(stock_info)
+    # print(stock_info)
+    datas = stock_info['Date']
+    # stock_info['Date'] = pd.to_datetime(stock_info['Date'], unit='s')
+    # datas = pd.to_datetime(stock_info['Date'], unit='s').dt.strftime('%Y-%m-%d')
+    # datas = stock_info['Date']
     stock_info = normalize_dataset(stock_info)  
     X_train, X_test, y_train, y_test = split_dataset_LSTM(stock_info)
-    # y_train = normalize_dataset(y_train.reshape(-1, 1))
-    y_test = denormalize_dataset(y_test.reshape(-1, 1))
-    
-    return X_train, X_test, y_train, y_test
+    datas_print = datas.iloc[-len(y_test):]
+    print(f'/n/n/n/n PREPROCESSING{datas_print}/n/n/n/n')
+    # Garantir que y_test tenha o formato correto antes de calcular datas
+    y_test = denormalize_dataset(y_test.reshape(-1, 1))  # Normaliza y_test aqui para evitar problemas
+
+    # datas = stock_info['Date'].tail(len(y_test))  # Pega as últimas datas
+
+    return X_train, X_test, y_train, y_test, datas_print
+
 
 
 def get_stock_info(dataset_name):
@@ -48,8 +57,10 @@ def normalize_dataset(dataset):
 
 def denormalize_dataset(previsao):
     global sc
-    previsao = sc.inverse_transform(previsao)
-    return previsao
+    # Pega apenas a escala da segunda coluna (preço de fechamento)
+    previsao = sc.inverse_transform(np.hstack([np.zeros((previsao.shape[0], 1)), previsao]))[:, 1]
+    return previsao.reshape(-1, 1)  # Garante o formato correto
+
 
 def split_dataset_LSTM(dataset):
     step = 60
