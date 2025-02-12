@@ -1,7 +1,9 @@
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout, LayerNormalization
 from tensorflow.keras.callbacks import EarlyStopping
+import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
+import matplotlib.dates as mdates
 from sklearn.ensemble import RandomForestRegressor
 from tensorflow.keras.models import load_model
 import os
@@ -29,8 +31,6 @@ class LSTM_model:
     def save_model(self):
         self.model.save(self.model_path)
 
-    from tensorflow.keras.models import load_model
-
     def load_model(self):
         if not os.path.exists(self.model_path):
             raise Exception('Model not found')
@@ -39,7 +39,7 @@ class LSTM_model:
     
     def create_layers(self, X_train):
         # self.model = Sequential()
-        self.model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 1)))
+        self.model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 2)))
         self.model.add(Dropout(0.2))
         self.model.add(LSTM(units=50, return_sequences=True))
         self.model.add(Dropout(0.2))
@@ -61,16 +61,29 @@ class LSTM_model:
             
         previsao = self.predict(X_test)
         previsao = pp.denormalize_dataset(previsao)
-        return self.predict(X_test)
+        print(f'PREVISAO\n\n\n{previsao}\n\n\n')
+        return previsao
         
-                
-    def visualizar_previsao(self, previsao, y_test):
-        plt.figure(figsize=(12, 6))  # Aumenta o tamanho da figura para melhor visualização
-        plt.plot(y_test, label='Real', color='blue', linestyle='-', linewidth=2, alpha=0.8)
-        plt.plot(previsao, label='Previsão', color='red', linestyle='--', linewidth=2)
+
+    def visualizar_previsao(self, previsao, y_test, datas):
+        plt.figure(figsize=(12, 6))
+        
+        # Convertendo as datas para um formato adequado
+        datas = pd.to_datetime(datas)
+
+        plt.plot(datas, y_test, label='Real', color='blue', linestyle='-', linewidth=2, alpha=0.8)
+        plt.plot(datas, previsao, label='Previsão', color='red', linestyle='--', linewidth=2)
+        
         plt.title('Previsão vs Real', fontsize=16, fontweight='bold')
-        plt.xlabel('Tempo', fontsize=14)
+        plt.xlabel('Data', fontsize=14)
         plt.ylabel('Preço', fontsize=14)
         plt.legend(loc='best', fontsize=12, frameon=True, shadow=True)
+        
+        # Melhorando a formatação das datas no eixo X
+        plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
+        plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+        plt.xticks(rotation=45)
+        
         plt.grid(True, linestyle='--', alpha=0.5)
         plt.show()
+

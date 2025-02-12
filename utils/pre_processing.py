@@ -11,10 +11,11 @@ def get_and_preprocess_dataset(dataset_name):
     stock_info = yf.Ticker(dataset_name).history(period='max')
     stock_info.reset_index(inplace=True)
     stock_info = delete_columns(stock_info)
+    print(stock_info)
     stock_info = normalize_dataset(stock_info)  
     X_train, X_test, y_train, y_test = split_dataset_LSTM(stock_info)
-    y_train = normalize_dataset(y_train.reshape(-1, 1))
-    print(y_test)
+    # y_train = normalize_dataset(y_train.reshape(-1, 1))
+    y_test = denormalize_dataset(y_test.reshape(-1, 1))
     
     return X_train, X_test, y_train, y_test
 
@@ -34,8 +35,11 @@ def delete_columns(dataset, columns=['Open', 'High', 'Low', 'Volume', 'Dividends
     dataset = dataset.drop(columns=[col for col in columns if col in dataset.columns], errors='ignore')
 
     if 'Close' in dataset.columns:
-        dataset = dataset[['Close']]
-    return dataset.to_numpy()
+        dataset = dataset[['Date', 'Close']]  # Mantém a coluna 'Date'
+        
+    dataset['Date'] = pd.to_datetime(dataset['Date']).astype(int) / 10**9
+
+    return dataset
 
 def normalize_dataset(dataset):
     global sc
@@ -49,25 +53,29 @@ def denormalize_dataset(previsao):
 
 def split_dataset_LSTM(dataset):
     step = 60
-    X_train = []
-    y_train = []
-    X_test = []
-    y_test = []
+    X_train, y_train = [], []
+    X_test, y_test = [], []
 
-    for i in range(step, int(0.7 * len(dataset))):
-        X_train.append(dataset[i-step:i])
-        y_train.append(dataset[i, 0])
-    
-    for i in range(int(0.7 * len(dataset)), len(dataset)):
-        X_test.append(dataset[i-step:i])
-        y_test.append(dataset[i, 0])
+    # Separando apenas a coluna de preços (Close) para normalizar
+    prices = dataset[:, 1].reshape(-1, 1)  # Pegando apenas os valores sem a data
+
+    # Criando as sequências para treinamento
+    for i in range(step, int(0.7 * len(prices))):
+        X_train.append(prices[i - step:i])
+        y_train.append(prices[i, 0])
+
+    for i in range(int(0.7 * len(prices)), len(prices)):
+        X_test.append(prices[i - step:i])
+        y_test.append(prices[i, 0])
 
     X_train, y_train = np.array(X_train), np.array(y_train)
-    X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
     X_test, y_test = np.array(X_test), np.array(y_test)
+
+    X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
     X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
-    
+
     return X_train, X_test, y_train, y_test
+
     
 def metrics(y_test, y_pred):
     rmse = mean_squared_error(y_test, y_pred)
